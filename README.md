@@ -81,6 +81,7 @@ Close the "MLflow Assistant" side panel (X) and any "Got it" pop-up first.
 | `eduassist_llmops.ipynb` | Notebook with executable code for Tasks 1-3 |
 | `requirements.txt` | Python dependencies |
 | `run_lab.sh` | Helper script that automates install + run + HTML export on the lab VM |
+| `eduassist_llmops.html` | HTML export of the executed notebook |
 | `latency_tokens_cost.csv` | Tasks 1 and 2: per-request latency, tokens, cost (5 requests, Prompt v1) |
 | `prompt_evaluation_results.csv` | Task 3: per-response results for v1, v2, v3 (15 rows) |
 | `screenshots/` | MLflow screenshots |
