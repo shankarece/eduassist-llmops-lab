@@ -1,0 +1,6 @@
+question_id,prompt_version,model,start_time,end_time,latency_seconds,status,input_tokens,output_tokens,total_tokens,input_cost_USD,output_cost_USD,total_cost_USD
+Q1,v1,Qwen/Qwen2.5-1.5B-Instruct,2026-10-31T12:51:24.849,2026-10-31T12:53:20.976,116.126,success,47,218,265,4.7e-06,2.18e-05,2.65e-05
+Q2,v1,Qwen/Qwen2.5-1.5B-Instruct,2026-10-31T12:53:20.976,2026-10-31T12:55:04.400,103.424,success,49,174,223,4.9000000000000005e-06,1.74e-05,2.23e-05
+Q3,v1,Qwen/Qwen2.5-1.5B-Instruct,2026-10-31T12:55:04.400,2026-10-31T12:57:04.919,120.519,success,48,234,282,4.800000000000001e-06,2.34e-05,2.82e-05
+Q4,v1,Qwen/Qwen2.5-1.5B-Instruct,2026-10-31T12:57:04.919,2026-10-31T12:59:12.224,127.305,success,47,256,303,4.7e-06,2.56e-05,3.0299999999999998e-05
+Q5,v1,Qwen/Qwen2.5-1.5B-Instruct,2026-10-31T12:59:12.224,2026-10-31T13:01:05.183,112.958,success,47,223,270,4.7e-06,2.23e-05,2.7e-05
