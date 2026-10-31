@@ -41,6 +41,7 @@ python -m pip install -r requirements.txt
 ```bash
 bash run_lab.sh        # pre-flight checks, isolated .venv, runs the notebook, exports HTML
 bash run_lab.sh ui     # starts the MLflow UI afterwards
+bash run_lab.sh push   # logs in to GitHub with a device code and pushes the result files
 ```
 
 The script does the same steps as the manual instructions below and needs no Jupyter or browser to run the notebook.

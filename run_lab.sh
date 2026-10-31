@@ -2,6 +2,7 @@
 # One-step helper for the lab VM.
 #   bash run_lab.sh      -> checks, creates an isolated environment, runs the notebook, exports HTML
 #   bash run_lab.sh ui   -> starts the MLflow UI (open http://127.0.0.1:5000 in the browser)
+#   bash run_lab.sh push -> logs in to GitHub (device code) and pushes the result files
 set -u
 cd "$(dirname "$0")"
 VENV=.venv
@@ -10,6 +11,31 @@ if [ "${1:-}" = "ui" ]; then
   [ -x "$VENV/bin/mlflow" ] || { echo "Run 'bash run_lab.sh' first."; exit 1; }
   [ -f mlflow.db ] || { echo "mlflow.db not found - the notebook has not been run yet."; exit 1; }
   exec "$VENV/bin/mlflow" ui --backend-store-uri sqlite:///mlflow.db
+fi
+
+if [ "${1:-}" = "push" ]; then
+  echo "== Sending results to GitHub =="
+  GH=$(command -v gh || true)
+  [ -z "$GH" ] && [ -x .ghenv/bin/gh ] && GH="$PWD/.ghenv/bin/gh"
+  if [ -z "$GH" ]; then
+    echo "Installing the GitHub CLI (a few minutes)..."
+    conda create -y -q -p .ghenv -c conda-forge gh || { echo "FAIL: could not install the GitHub CLI"; exit 1; }
+    GH="$PWD/.ghenv/bin/gh"
+  fi
+  if ! "$GH" auth status >/dev/null 2>&1; then
+    echo "A code like ABCD-1234 will appear. On YOUR computer open https://github.com/login/device , type the code and approve."
+    "$GH" auth login --hostname github.com --git-protocol https --web || { echo "FAIL: GitHub login did not complete"; exit 1; }
+  fi
+  "$GH" auth setup-git
+  login=$("$GH" api user --jq .login) && uid=$("$GH" api user --jq .id) || { echo "FAIL: could not read GitHub account"; exit 1; }
+  ID=(-c "user.name=$login" -c "user.email=${uid}+${login}@users.noreply.github.com")
+  for f in latency_tokens_cost.csv prompt_evaluation_results.csv eduassist_llmops.ipynb eduassist_llmops.html mlflow.db screenshots; do
+    [ -e "$f" ] && git add "$f"
+  done
+  git "${ID[@]}" commit -q -m "Add notebook run results" || echo "(nothing new to commit)"
+  git "${ID[@]}" pull --rebase --autostash -q origin main || { echo "FAIL: could not sync with GitHub"; exit 1; }
+  git push origin main && echo "PUSHED to https://github.com/shankarece/eduassist-llmops-lab" || { echo "FAIL: push was rejected"; exit 1; }
+  exit 0
 fi
 
 echo "== 1/4 Pre-flight checks =="
