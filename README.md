@@ -18,7 +18,7 @@ MLOps Experiential Learning Assignment-2. One notebook (`eduassist_llmops.ipynb`
 
 ## Environment
 
-- **Python:** 3.12 (lab VM: 3.12.9; also tested on 3.13)
+- **Python version:** 3.12 (lab VM: 3.12.9; also tested on 3.13)
 - **Libraries** (`requirements.txt`): `mlflow>=3.17,<4` (Prompt Registry needs MLflow 3.x), `transformers>=5.0,<6`, `torch>=2.4` (CPU build is fine), `pandas>=2.2`
 - **Environment variables (all optional):**
   - `HF_TOKEN`: Hugging Face token (not needed for this public model)
