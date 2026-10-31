@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# One-step helper for the lab VM.
+#   bash run_lab.sh      -> checks, creates an isolated environment, runs the notebook, exports HTML
+#   bash run_lab.sh ui   -> starts the MLflow UI (open http://127.0.0.1:5000 in the browser)
+set -u
+cd "$(dirname "$0")"
+VENV=.venv
+
+if [ "${1:-}" = "ui" ]; then
+  [ -x "$VENV/bin/mlflow" ] || { echo "Run 'bash run_lab.sh' first."; exit 1; }
+  [ -f mlflow.db ] || { echo "mlflow.db not found - the notebook has not been run yet."; exit 1; }
+  exec "$VENV/bin/mlflow" ui --backend-store-uri sqlite:///mlflow.db
+fi
+
+echo "== 1/4 Pre-flight checks =="
+command -v python >/dev/null || { echo "FAIL: python not found"; exit 1; }
+python --version
+avail=$(df -BG . | awk 'NR==2{gsub("G","",$4); print $4}')
+mem=$(free -g | awk '/Mem:/{print $7}')
+echo "Free disk: ${avail} GB | Available memory: ${mem} GB"
+[ "${avail:-0}" -ge 8 ] || { echo "FAIL: need at least 8 GB free disk"; exit 1; }
+[ "${mem:-0}" -ge 8 ] || { echo "FAIL: need at least 8 GB available memory"; exit 1; }
+curl -sI -m 20 https://pypi.org | head -1 | grep -q " 200" || { echo "FAIL: cannot reach pypi.org"; exit 1; }
+if [ -n "${EDUASSIST_MODEL:-}" ] && [ -d "${EDUASSIST_MODEL}" ]; then
+  echo "Using local model folder: ${EDUASSIST_MODEL}"
+else
+  curl -sI -m 20 https://huggingface.co | head -1 | grep -q " 200" || { echo "FAIL: cannot reach huggingface.co"; exit 1; }
+fi
+echo "Pre-flight OK"
+
+echo "== 2/4 Creating isolated environment and installing libraries (a few minutes) =="
+[ -x "$VENV/bin/python" ] || python -m venv "$VENV" || { echo "FAIL: could not create the environment"; exit 1; }
+"$VENV/bin/python" -m pip install -q --upgrade pip
+# CPU-only PyTorch is much smaller; if its download site is unreachable, fall back to the normal package.
+"$VENV/bin/python" -m pip install -q torch --index-url https://download.pytorch.org/whl/cpu --retries 1 --timeout 20 \
+  || "$VENV/bin/python" -m pip install -q torch || { echo "FAIL: torch install failed"; exit 1; }
+"$VENV/bin/python" -m pip install -q -r requirements.txt nbconvert ipykernel || { echo "FAIL: library install failed"; exit 1; }
+"$VENV/bin/python" -c "import mlflow, transformers, torch, pandas; print('mlflow', mlflow.__version__, '| transformers', transformers.__version__, '| torch', torch.__version__)" || exit 1
+
+echo "== 3/4 Running the notebook (about 15-30 min; a message appears every minute) =="
+export PATH="$PWD/$VENV/bin:$PATH"
+( while true; do sleep 60; echo "   ...still running, $((SECONDS/60)) min elapsed"; done ) &
+HB=$!
+jupyter nbconvert --to notebook --execute eduassist_llmops.ipynb --inplace --ExecutePreprocessor.timeout=-1
+rc=$?
+kill $HB 2>/dev/null
+if [ $rc -ne 0 ]; then
+  echo "FAILED while running the notebook. Take a photo of the error above and send it."
+  exit 1
+fi
+
+echo "== 4/4 Exporting HTML =="
+jupyter nbconvert --to html eduassist_llmops.ipynb
+
+echo
+echo "DONE. Files created:"
+ls -l latency_tokens_cost.csv prompt_evaluation_results.csv mlflow.db eduassist_llmops.html
+echo
+echo "Next: run   bash run_lab.sh ui   then open http://127.0.0.1:5000 for the screenshots."

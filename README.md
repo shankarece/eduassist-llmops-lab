@@ -30,10 +30,20 @@ MLOps Experiential Learning Assignment-2. One notebook (`eduassist_llmops.ipynb`
 ```bash
 git clone https://github.com/shankarece/eduassist-llmops-lab.git ~/workspace/eduassist-llmops-lab
 cd ~/workspace/eduassist-llmops-lab
+python -m pip install torch --index-url https://download.pytorch.org/whl/cpu   # optional: smaller CPU-only PyTorch
 python -m pip install -r requirements.txt
 ```
 
 (The notebook's first cell also installs anything missing, so this step is optional.)
+
+### Quick run on the lab VM (one script)
+
+```bash
+bash run_lab.sh        # pre-flight checks, isolated .venv, runs the notebook, exports HTML
+bash run_lab.sh ui     # starts the MLflow UI afterwards
+```
+
+The script does the same steps as the manual instructions below and needs no Jupyter or browser to run the notebook.
 
 ## Steps to reproduce
 
@@ -69,6 +79,7 @@ Close the "MLflow Assistant" side panel (X) and any "Got it" pop-up first.
 |---|---|
 | `eduassist_llmops.ipynb` | Notebook with executable code for Tasks 1-3 |
 | `requirements.txt` | Python dependencies |
+| `run_lab.sh` | Helper script that automates install + run + HTML export on the lab VM |
 | `latency_tokens_cost.csv` | Tasks 1 and 2: per-request latency, tokens, cost (5 requests, Prompt v1) |
 | `prompt_evaluation_results.csv` | Task 3: per-response results for v1, v2, v3 (15 rows) |
 | `screenshots/` | MLflow screenshots |
